@@ -77,10 +77,10 @@ module MultiHeadAttention
 	# batched matrix multiplication
 	function batched_matrix_multiplication(A::Array{Float32}, B::Array{Float32})::Array{Float32}
 		# Ensure the batch sizes (first dimension) match
-		size(A, 1) == size(B, 1) || throw(DimensionMismatch("Batch dimensions must match!"))
+		size(A, 1) == size(B, 1) || throw(DimensionMismatch("Batch dimensions must match."))
 
 		# Check matrix dimensions for compatibility (A's 3rd dimension must match B's 2nd dimension)
-		size(A, 3) == size(B, 2) || throw(DimensionMismatch("Matrix dimensions must match: A's columns must match B's rows!"))
+		size(A, 3) == size(B, 2) || throw(DimensionMismatch("Matrix dimensions must match: A's columns must match B's rows."))
 
 		C = @einsum C[b, i, j] := A[b, i, k] * B[b, k, j]
 		
@@ -120,7 +120,7 @@ module MultiHeadAttention
 				ArgumentError(
 					"Shape mismatch: mask must have dims (batch_size, seq_len, seq_len)" *
 					"Got size: $(size(mask))" *
-					"Whereas Q: $(size(Q))"
+					"whereas Q: $(size(Q))."
 				)
 			)
 		end
