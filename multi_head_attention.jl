@@ -5,7 +5,7 @@
 # 	scaled_dot_product_attention ✓⧄
 #	causal_mask ✓⧄
 #	softmax ✓⧄
-# 	⊛ (batched matrix multiplication) ✓⧄
+# 	⊛ (batched matrix multiplication), operator is "\circledast" ✓⧄
 # 	batched_transpose ✓⧄
 # 	dim_check ✓⧄
 # ------------------------------------------------------------------------------
