@@ -5,7 +5,7 @@
 # 	scaled_dot_product_attention ✓⧄
 #	causal_mask ✓⧄
 #	softmax ✓⧄
-# 	⊛ (batched matrix multiplication), operator is "\circledast" ✓⧄
+# 	⊗ (batched matrix multiplication), operator is "\otimes" ✓⧄
 # 	batched_transpose ✓⧄
 # 	dim_check ✓⧄
 # ------------------------------------------------------------------------------
@@ -31,10 +31,10 @@ function scaled_dot_product_attention(
 
 	# ------------------------------------------------------------------------------
 	# let's spell this out before we get fancy with it:
-	# 	1. (Q⊛Kᵀ)/√d_k ⟶ (batch_size, seq_len_q, seq_len_k)
+	# 	1. (Q⊗Kᵀ)/√d_k ⟶ (batch_size, seq_len_q, seq_len_k)
 	#   2. add mask
 	# 	3. normalize seq_len_k dimension with softmax
-	# 	4. Attention(Q,K,V) = softmax((Q⊛Kᵀ)/√d_k + M)⊛V
+	# 	4. Attention(Q,K,V) = softmax((Q⊗Kᵀ)/√d_k + M)⊗V
 	#                         ⟶ (batch_size, seq_len_q, d_v)
 	# ------------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ function scaled_dot_product_attention(
 	d_k = size(K, 3)
 
     # vvv look, just like in the paper! vvv
-    return softmax((Q ⊛ Kt ./ sqrt(d_k)) + M) ⊛ V
+    return softmax((Q ⊗ Kt ./ sqrt(d_k)) + M) ⊗ V
 
 end
 
@@ -79,7 +79,7 @@ function batched_matrix_multiplication(A::Array{Float32}, B::Array{Float32})
     
     return C
 end
-⊛(A, B) = batched_matrix_multiplication(A, B)
+⊗(A, B) = batched_matrix_multiplication(A, B)
 
 # batched matrix transposition
 function batched_transpose(A::Array{Float32})
