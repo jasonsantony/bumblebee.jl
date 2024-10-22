@@ -12,6 +12,8 @@
 # 	dim_check ✓✓
 # ------------------------------------------------------------------------------
 module MultiHeadAttentionModule
+	using LinearAlgebra: triu # for causal_mask, from std lib
+
 	export scaled_dot_product_attention
 	export causal_mask
 
@@ -64,15 +66,12 @@ module MultiHeadAttentionModule
 		batch_size::Int,
 		seq_len::Int
 	)::Array{Float32, 3}
-		return reshape(
-				[i >= j ? 0.0f0 : -Inf32 
-					for b in 1:batch_size
-						for i in 1:seq_len
-							for j in 1:seq_len
-				], 
-				batch_size,
-				seq_len, seq_len
-			)
+		mask_2d = triu(fill(-Inf32, (seq_len, seq_len)), 1)
+		mask_3d = Array{Float32}(undef, batch_size, seq_len, seq_len)
+		for i in 1:batch_size
+			mask_3d[i, :, :] = mask_2d
+		end
+		return mask_3d
 	end
 
 	function softmax(x::Array{Float32}, dims::Int = 3)::Array{Float32}

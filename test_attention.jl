@@ -15,27 +15,6 @@ function test()
     return scaled_dot_product_attention(Q, K, V, mask)
 end
 
-function pretty_print_array(A::AbstractArray)
-    println(typeof(A))
-    dims = ndims(A)
-    if dims == 1
-        println(A)
-    elseif dims == 2
-        println(A)
-    elseif dims == 3
-        b= size(A, 1)
-        for i in 1:b
-            println("Slice $i:")
-            println(A[i, :, :])  # Print each 2D slice
-            println()
-        end
-    else
-        println("Array with dimensions: ", size(A))
-        # You could extend this to handle 4D or higher arrays similarly
-        # by recursively printing sub-arrays or slices
-    end
-end
-
 function pretty_print_tensor(A::AbstractArray; max_elements=6)
     dims = size(A)
     ndims_A = ndims(A)
@@ -74,4 +53,5 @@ function pretty_print_tensor(A::AbstractArray; max_elements=6)
 end
 
 
+# pretty_print_tensor(causal_mask(5, 4))
 pretty_print_tensor(test())
