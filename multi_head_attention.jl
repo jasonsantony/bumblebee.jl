@@ -12,8 +12,6 @@
 # 	dim_check ✓✓
 # ------------------------------------------------------------------------------
 module MultiHeadAttentionModule
-	using Einsum # for batched matrix multiplication and transposition
-
 	export scaled_dot_product_attention
 	export causal_mask
 
@@ -83,7 +81,7 @@ module MultiHeadAttentionModule
 		return exp_x ./ sum(exp_x, dims=dims)  # Normalize across the specified dimension
 	end
 
-	# batched matrix multiplication
+	# batched matrix multiplication, *first dim is batch dim*
 	function batched_matrix_multiplication(A::Array{Float32}, B::Array{Float32})::Array{Float32}
 		# Ensure the batch sizes (first dimension) match
 		size(A, 1) == size(B, 1) || throw(DimensionMismatch("Batch dimensions must match."))
@@ -101,9 +99,9 @@ module MultiHeadAttentionModule
 	end
 	⊗(A, B) = batched_matrix_multiplication(A, B)
 
-	# batched matrix transposition
+	# batched matrix transposition, *first dim is batch dim*
 	function batched_transpose(A::Array{Float32})::Array{Float32}
-		At = @einsum At[b, i, j] := A[b, j, i]
+		At = permutedims(A, (1, 3, 2))
 		return At
 	end
 
