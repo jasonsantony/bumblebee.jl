@@ -91,8 +91,12 @@ module MultiHeadAttentionModule
 		# Check matrix dimensions for compatibility (A's 3rd dimension must match B's 2nd dimension)
 		size(A, 3) == size(B, 2) || throw(DimensionMismatch("Matrix dimensions must match: A's columns must match B's rows."))
 
-		C = @einsum C[b, i, j] := A[b, i, k] * B[b, k, j]
-		
+		b, n = size(A)[1:2] # A: (b, n, m)
+		p = size(B)[3] # B: (b, m, p)
+		C = Array{Float32, 3}(undef, b, n, p)
+		for i in 1:b
+			C[i, :, :] = A[i, :, :] * B[i, :, :]
+		end
 		return C
 	end
 	⊗(A, B) = batched_matrix_multiplication(A, B)
