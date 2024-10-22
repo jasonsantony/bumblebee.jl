@@ -12,7 +12,7 @@
 # 	dim_check ✓✓
 # ------------------------------------------------------------------------------
 module MultiHeadAttentionModule
-	using LinearAlgebra: triu # for causal_mask, from std lib
+	using LinearAlgebra: triu # for causal_mask, from "std lib"
 
 	export scaled_dot_product_attention
 	export causal_mask
@@ -28,6 +28,7 @@ module MultiHeadAttentionModule
 		head_dim::Int
 	end
 
+
 	# One head of self-attention
 	function scaled_dot_product_attention(
 		Q::Array{Float32, 3},
@@ -37,18 +38,18 @@ module MultiHeadAttentionModule
 	)::Array{Float32, 3}
 		# Q: (batch_size, seq_len, d_q)
 		# K: (batch_size, seq_len, d_k)
-		# V: (batch_size, seq_len, d_V)
+		# V: (batch_size, seq_len, d_v)
 
 		# make sure Q, K, V, and mask conform
 		dim_check(Q, K, V, causal_mask)
 
 		# ------------------------------------------------------------------------------
 		# let's spell this out before we get fancy with it:
-		# 	1. (Q⊗Kᵀ)/√d_k ⟶ (batch_size, seq_len_q, seq_len_k)
+		# 	1. (Q⊗Kᵀ)/√d_k ⟶ (batch_size, seq_len, seq_len)
 		#   2. add mask
 		# 	3. normalize seq_len_k dimension with softmax
 		# 	4. Attention(Q,K,V) = softmax((Q⊗Kᵀ)/√d_k + M)⊗V
-		#                         ⟶ (batch_size, seq_len_q, d_v)
+		#                         ⟶ (batch_size, seq_len, d_v)
 		# ------------------------------------------------------------------------------
 
 		Kt = batched_transpose(K)
@@ -59,7 +60,6 @@ module MultiHeadAttentionModule
 		return softmax((Q ⊗ Kt ./ sqrt(d_k)) + M) ⊗ V
 
 	end
-
 
 
 	function causal_mask(
@@ -74,11 +74,13 @@ module MultiHeadAttentionModule
 		return mask_3d
 	end
 
+
 	function softmax(x::Array{Float32}, dims::Int = 3)::Array{Float32}
 		# default dim = 3 for 
 		exp_x = exp.(x .- maximum(x, dims=dims))  # Subtract max for numerical stability
 		return exp_x ./ sum(exp_x, dims=dims)  # Normalize across the specified dimension
 	end
+
 
 	# batched matrix multiplication, *first dim is batch dim*
 	function batched_matrix_multiplication(A::Array{Float32}, B::Array{Float32})::Array{Float32}
@@ -98,12 +100,14 @@ module MultiHeadAttentionModule
 	end
 	⊗(A, B) = batched_matrix_multiplication(A, B)
 
+
 	# batched matrix transposition, *first dim is batch dim*
 	function batched_transpose(A::Array{Float32})::Array{Float32}
 		At = permutedims(A, (1, 3, 2))
 		return At
 	end
 
+	
 	function dim_check(
 		Q::Array{Float32, 3},
 		K::Array{Float32, 3},
