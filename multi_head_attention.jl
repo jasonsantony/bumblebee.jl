@@ -2,9 +2,10 @@
 # multi_head_attention.jl
 # structs:
 #	MultiHeadAttention
-# functions:
+# most interesting functions:
 #	multi_head_attention ⧄⧄
 # 	scaled_dot_product_attention ✓✓
+# helper functions:
 #	causal_mask ✓✓
 #	softmax ✓✓
 # 	⊗ (batched matrix multiplication), operator is "\otimes" ✓✓
@@ -43,14 +44,14 @@ module MultiHeadAttentionModule
 		# make sure Q, K, V, and mask conform
 		dim_check(Q, K, V, causal_mask)
 
-		# ------------------------------------------------------------------------------
+		# ----------------------------------------------------------------------
 		# let's spell this out before we get fancy with it:
 		# 	1. (Q⊗Kᵀ)/√d_k ⟶ (batch_size, seq_len, seq_len)
-		#   2. add mask
+		#   2. add causal mask (no peeking!)
 		# 	3. normalize seq_len_k dimension with softmax
 		# 	4. Attention(Q,K,V) = softmax((Q⊗Kᵀ)/√d_k + M)⊗V
 		#                         ⟶ (batch_size, seq_len, d_v)
-		# ------------------------------------------------------------------------------
+		# ----------------------------------------------------------------------
 
 		Kt = batched_transpose(K)
 		d_k = Float32(size(K, 3))
