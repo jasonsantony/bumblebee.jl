@@ -1,19 +1,18 @@
 include("multi_head_attention.jl")
-using .MultiHeadAttention
+using .MultiHeadAttentionModule
 import Random
 
 function main()
     batch_size = 5
     seq_len = 4
-    d_q = 3
-    d_v = 6
+    d_k = 3
 
-    Q = rand(Float32, batch_size, seq_len, d_q)
-    K = rand(Float32, batch_size, seq_len, d_q)
-    V = rand(Float32, batch_size, seq_len, d_v)
+    Q = rand(Float32, batch_size, seq_len, d_k)
+    K = rand(Float32, batch_size, seq_len, d_k)
+    V = rand(Float32, batch_size, seq_len, d_k)
     mask = causal_mask(batch_size, seq_len)
 
-    return scaled_dot_product_attention(Q, K, V)
+    return scaled_dot_product_attention(Q, K, V, mask)
 end
 
 main()
