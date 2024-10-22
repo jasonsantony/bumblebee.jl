@@ -1,37 +1,46 @@
 # ------------------------------------------------------------------------------
 # multi_head_attention.jl
+# structs:
+#	MultiHeadAttention
 # functions:
 #	multi_head_attention ⧄⧄
-# 	scaled_dot_product_attention ✓⧄
-#	causal_mask ✓⧄
-#	softmax ✓⧄
-# 	⊗ (batched matrix multiplication), operator is "\otimes" ✓⧄
-# 	batched_transpose ✓⧄
-# 	dim_check ✓⧄
+# 	scaled_dot_product_attention ✓✓
+#	causal_mask ✓✓
+#	softmax ✓✓
+# 	⊗ (batched matrix multiplication), operator is "\otimes" ✓✓
+# 	batched_transpose ✓✓
+# 	dim_check ✓✓
 # ------------------------------------------------------------------------------
-module MultiHeadAttention
+module MultiHeadAttentionModule
 	using Einsum # for batched matrix multiplication and transposition
 
 	export scaled_dot_product_attention
 	export causal_mask
 
-	# Q: (batch_size, seq_len, d_q)
-	# K: (batch_size, seq_len, d_k)
-	# V: (batch_size, seq_len, d_V)
+	# TODO: figure out dimensionality
+	mutable struct MultiHeadAttention
+		W_q::Matrix{Float32}
+		W_k::Matrix{Float32}
+		W_v::Matrix{Float32}
+		W_o::Matrix{Float32}
+		causal_mask::Array{Float32, 3}
+		n_heads::Int
+		head_dim::Int
+	end
+
+	# One head of self-attention
 	function scaled_dot_product_attention(
 		Q::Array{Float32, 3},
 		K::Array{Float32, 3},
 		V::Array{Float32, 3},
-		mask::Union{Array{Float32, 3}, Nothing} = nothing
+		causal_mask::Array{Float32, 3}
 	)::Array{Float32, 3}
-		# make sure Q, K, V, and mask conform
-		dim_check(Q, K, V, mask)
+		# Q: (batch_size, seq_len, d_q)
+		# K: (batch_size, seq_len, d_k)
+		# V: (batch_size, seq_len, d_V)
 
-		if mask === nothing
-			M = zeros(Float32, size(Q, 1), size(Q, 2), size(K, 2)) # (batch_size, seq_len_q, d_v)
-		else
-			M = mask
-		end
+		# make sure Q, K, V, and mask conform
+		dim_check(Q, K, V, causal_mask)
 
 		# ------------------------------------------------------------------------------
 		# let's spell this out before we get fancy with it:
@@ -43,11 +52,11 @@ module MultiHeadAttention
 		# ------------------------------------------------------------------------------
 
 		Kt = batched_transpose(K)
-		d_k = size(K, 3)
-		sqrt_d_k = Float32(sqrt(d_k))
+		d_k = Float32(size(K, 3))
+		M = causal_mask
 
 		# vvv look, just like in the paper! vvv
-		return softmax((Q ⊗ Kt ./ sqrt_d_k) + M) ⊗ V
+		return softmax((Q ⊗ Kt ./ sqrt(d_k)) + M) ⊗ V
 
 	end
 
@@ -98,31 +107,21 @@ module MultiHeadAttention
 		Q::Array{Float32, 3},
 		K::Array{Float32, 3},
 		V::Array{Float32, 3},
-		mask::Union{Array{Float32, 3}, Nothing}
+		mask::Array{Float32, 3}
 	)
-		if !(size(Q) == size(K))
-			throw(
-				ArgumentError(
-					"Shape mismatch: Q and K must have the same shape. " * 
-					"Got sizes: $(size(Q)) and $(size(K))."
-				)
+		size(Q) == size(K) == size(V) || throw(
+			ArgumentError(
+				"Shape mismatch: Q, K, and V must have the same dimensions. " *
+				"Got sizes: Q: $(size(Q)), K: $(size(K)), and V: $(size(V))"
 			)
-		elseif (size(Q, 1) != size(V, 1) || size(Q, 2) != size(V, 2))
-			throw(
-				ArgumentError(
-					"Shape mismatch: V must have the same batch_size and " *
-					"seq_length as the other matrices. " *
-					"Got sizes: Q:$(size(Q)), K:$(size(K)) and V:$(size(V))."
-				)
+		)
+		
+		size(mask) == (size(Q, 1), size(Q, 2), size(K, 2)) || throw(
+			ArgumentError(
+				"Shape mismatch: mask must have dims (batch_size, seq_len, seq_len)" *
+				"Got size: $(size(mask))" *
+				"whereas Q: $(size(Q))."
 			)
-		elseif mask !== nothing && size(mask) != (size(Q, 1), size(Q, 2), size(K, 2))
-			throw(
-				ArgumentError(
-					"Shape mismatch: mask must have dims (batch_size, seq_len, seq_len)" *
-					"Got size: $(size(mask))" *
-					"whereas Q: $(size(Q))."
-				)
-			)
-		end
+		)
 	end
 end
