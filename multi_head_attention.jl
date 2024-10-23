@@ -16,14 +16,38 @@ module MultiHeadAttentionModule
 	export scaled_dot_product_attention
 	export causal_mask
 
+	mutable struct ProjectionValues
+		W_q::Matrix{Float32} # (d_model, d_model)
+		b_q::Vector{Float32} # (1, d_model)
+
+		W_k::Matrix{Float32} # (d_model, d_model)
+		b_k::Vector{Float32} # (1, d_model)
+
+		W_v::Matrix{Float32} # (d_model, d_model)
+		b_v::Vector{Float32} # (1, d_model)
+
+		W_o::Matrix{Float32} # (d_model, d_model)
+		b_o::Vector{Float32} # (1, d_model)
+	end
+
 	function multi_head_attention(
-		d_model::Int, n_heads::Int, d_k::Int,
-		W_q::Matrix{Float32},
-		W_k::Matrix{Float32},
-		W_v::Matrix{Float32},
-		W_o::Matrix{Float32}
+		n_heads::Int,
+		proj::ProjectionValues,
+		Q::Array{Float32, 3},
+		K::Array{Float32, 3},
+		V::Array{Float32, 3},
+		causal_mask::Array{Float32, 3}
 	)
-		# All W matrices: (d_model, d_model)
+		# ----------------------------------------------------------------------
+		# Q: (batch_size, seq_len, d_q)
+		# K: (batch_size, seq_len, d_k)
+		# V: (batch_size, seq_len, d_v)
+		# causal_mask: (batch_size, seq_len, seq_len)
+		# ----------------------------------------------------------------------
+
+
+
+
 		
 	end
 
@@ -35,9 +59,12 @@ module MultiHeadAttentionModule
 		V::Array{Float32, 3},
 		causal_mask::Array{Float32, 3}
 	)::Array{Float32, 3}
+		# ----------------------------------------------------------------------
 		# Q: (batch_size, seq_len, d_q)
 		# K: (batch_size, seq_len, d_k)
 		# V: (batch_size, seq_len, d_v)
+		# causal_mask: (batch_size, seq_len, seq_len)
+		# ----------------------------------------------------------------------
 
 		# make sure Q, K, V, and mask conform
 		dim_check(Q, K, V, causal_mask)
