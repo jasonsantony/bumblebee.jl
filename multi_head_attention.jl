@@ -83,7 +83,7 @@ module MultiHeadAttentionModule
 		M = causal_mask
 
 		# vvv look, just like in the paper! vvv
-		return softmax((Q ⊗ Kt ./ sqrt(d_k)) + M) ⊗ V
+		return softmax(((Q ⊗ Kt) ./ sqrt(d_k)) + M) ⊗ V
 
 	end
 
