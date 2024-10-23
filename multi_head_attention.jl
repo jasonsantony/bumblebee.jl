@@ -16,7 +16,8 @@ module MultiHeadAttentionModule
 	export scaled_dot_product_attention
 	export causal_mask
 
-	mutable struct ProjectionValues
+	# immutable, but fields are mutable dtypes
+	struct ProjectionValues
 		W_q::Matrix{Float32} # (d_model, d_model)
 		b_q::Vector{Float32} # (1, d_model)
 
@@ -38,17 +39,9 @@ module MultiHeadAttentionModule
 		V::Array{Float32, 3},
 		causal_mask::Array{Float32, 3}
 	)
-		# ----------------------------------------------------------------------
-		# Q: (batch_size, seq_len, d_q)
-		# K: (batch_size, seq_len, d_k)
-		# V: (batch_size, seq_len, d_v)
-		# causal_mask: (batch_size, seq_len, seq_len)
-		# ----------------------------------------------------------------------
 
+		# TODO: 😭
 
-
-
-		
 	end
 
 
