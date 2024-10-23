@@ -1,7 +1,5 @@
 # ------------------------------------------------------------------------------
 # multi_head_attention.jl
-# structs:
-#	MultiHeadAttention
 # most interesting functions:
 #	multi_head_attention ⧄⧄
 # 	scaled_dot_product_attention ✓✓
@@ -18,15 +16,15 @@ module MultiHeadAttentionModule
 	export scaled_dot_product_attention
 	export causal_mask
 
-	# TODO: figure out dimensionality
-	mutable struct MultiHeadAttention
-		W_q::Matrix{Float32}
-		W_k::Matrix{Float32}
-		W_v::Matrix{Float32}
+	function multi_head_attention(
+		d_model::Int, n_heads::Int, d_k::Int,
+		W_q::Matrix{Float32},
+		W_k::Matrix{Float32},
+		W_v::Matrix{Float32},
 		W_o::Matrix{Float32}
-		causal_mask::Array{Float32, 3}
-		n_heads::Int
-		head_dim::Int
+	)
+		# All W matrices: (d_model, d_model)
+		
 	end
 
 
