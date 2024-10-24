@@ -12,7 +12,7 @@
 # 	dim_check ✓✓
 # ------------------------------------------------------------------------------
 module MultiHeadAttentionModule
-	using LinearAlgebra: triu # for causal_mask, from "std lib"
+	using LinearAlgebra: triu # for causal_mask, part of standard library
 
 	export scaled_dot_product_attention
 	export causal_mask
