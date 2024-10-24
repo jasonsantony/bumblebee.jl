@@ -41,7 +41,7 @@ module MultiHeadAttentionModule
 		V::Array{Float32, 3},
 		causal_mask::Array{Float32, 3}
 	)
-		d_model = size(proj.W_q, 3)
+		d_model = size(proj.W_q, 1)
 		d_k = d_model // n_heads
 	
 		# TODO: perform linear projection with biases 
