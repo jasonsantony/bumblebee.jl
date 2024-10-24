@@ -102,21 +102,14 @@ module MultiHeadAttentionModule
 		seq_len::Int
 	)::Array{Float32, 3}
 		mask_2d = triu(fill(-Inf32, (seq_len, seq_len)), 1)
-		mask_3d = batch(batch_size, mask_2d)
+		mask_3d = Array{Float32}(undef, batch_size, seq_len, seq_len)
+		for i in 1:batch_size
+			mask_3d[i, :, :] = mask_2d
+		end
 		return mask_3d
 	end
 
-	function batch(
-		batch_size::Int,
-		m::Matrix{Float32}
-	)::Array{Float32, 3}
-		batched_matrix = Array{Float32}(undef, batch_size, size(m, 1), size(m, 2))
-		for i in 1:batch_size
-			batched_matrix[i, :, :] = m
-		end
-		return batched_matrix
-	end
-
+	
 	function softmax(
 		x::Array{Float32},
 		dims::Int = 3
