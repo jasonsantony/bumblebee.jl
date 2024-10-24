@@ -44,11 +44,19 @@ module MultiHeadAttentionModule
 		d_model = size(proj.W_q, 3)
 		d_k = d_model // n_heads
 	
-		# project and reshape: 
-		# (batch_size, seq_len, d_model) ⟶ (batch_size, seq_len, n_heads, d_k)
-		Q_proj = Q ⊗ proj.W_q #TODO: still have to add bias and reshape
+		# TODO: perform linear projection with biases 
+		#	⟶ (batch_size, seq_len, d_model)
 
-		# TODO: the rest 😭
+		# TODO: split heads: (batch_size, seq_len, n_heads, d_k)
+		# TODO: transpose to bring up head_dim: (batch_size, n_heads, seq_len, d_k)
+		# TODO: flatten to (batch_size * n_heads, seq_len, d_k)
+
+		# TODO: run scaled_dot_product_attention
+		# 	⟶ (batch_size * n_heads, seq_len, d_v)
+
+		# TODO: reshape to (batch_size, n_heads, seq_len, d_v)
+		# TODO: transpose to (batch_size, seq_len, n_heads, d_v)
+		# TODO: concat heads back to d_model: (batch_size, seq_len, d_model)
 		
 	end
 
