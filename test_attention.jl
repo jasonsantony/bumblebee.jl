@@ -1,8 +1,10 @@
 include("multi_head_attention.jl")
 using .MultiHeadAttentionModule
-import Random
+using Random
+using LinearAlgebra
 
 function test()
+    Random.seed!(1337)
     batch_size = 5
     seq_len = 4
     d_k = 3
@@ -52,6 +54,16 @@ function pretty_print_tensor(A::AbstractArray; max_elements=6)
     end
 end
 
+function bmm_test()
+    Random.seed!(1337)
+    a = rand(Float32, 2, 4, 3)
+    b = Matrix{Float32}(I, 3, 4)
+    pretty_print_tensor(a)
+    pretty_print_tensor(a ⊗ b)
+    return
+end
+
 
 # pretty_print_tensor(causal_mask(5, 4))
 pretty_print_tensor(test())
+# bmm_test()
