@@ -5,6 +5,7 @@
 # 	scaled_dot_product_attention ✓✓
 # helper functions:
 #	causal_mask ✓✓
+#	batch ✓✓
 #	softmax ✓✓
 # 	⊗ (batched matrix multiplication), operator is "\otimes" ✓✓
 # 	batched_transpose ✓✓
@@ -15,6 +16,7 @@ module MultiHeadAttentionModule
 
 	export scaled_dot_product_attention
 	export causal_mask
+	export ⊗
 
 	# immutable, but fields are mutable dtypes
 	struct ProjectionValues
@@ -39,9 +41,15 @@ module MultiHeadAttentionModule
 		V::Array{Float32, 3},
 		causal_mask::Array{Float32, 3}
 	)
+		d_model = size(proj.W_q, 3)
+		d_k = d_model // n_heads
+	
+		# project and reshape: 
+		# (batch_size, seq_len, d_model) ⟶ (batch_size, seq_len, n_heads, d_k)
+		Q_proj = Q ⊗ proj.W_q #TODO: still have to add bias and reshape
 
-		# TODO: 😭
-
+		# TODO: the rest 😭
+		
 	end
 
 
@@ -86,28 +94,81 @@ module MultiHeadAttentionModule
 		seq_len::Int
 	)::Array{Float32, 3}
 		mask_2d = triu(fill(-Inf32, (seq_len, seq_len)), 1)
-		mask_3d = Array{Float32}(undef, batch_size, seq_len, seq_len)
-		for i in 1:batch_size
-			mask_3d[i, :, :] = mask_2d
-		end
+		mask_3d = batch(batch_size, mask_2d)
 		return mask_3d
 	end
 
+	function batch(
+		batch_size::Int,
+		m::Matrix{Float32}
+	)::Array{Float32, 3}
+		batched_matrix = Array{Float32}(undef, batch_size, size(m, 1), size(m, 2))
+		for i in 1:batch_size
+			batched_matrix[i, :, :] = m
+		end
+		return batched_matrix
+	end
 
-	function softmax(x::Array{Float32}, dims::Int = 3)::Array{Float32}
-		# default dim = 3 for 
-		exp_x = exp.(x .- maximum(x, dims=dims))  # Subtract max for numerical stability
-		return exp_x ./ sum(exp_x, dims=dims)  # Normalize across the specified dimension
+	function softmax(
+		x::Array{Float32},
+		dims::Int = 3
+	)::Array{Float32}
+		# Subtract max for numerical stability
+		exp_x = exp.(x .- maximum(x, dims=dims))
+		# Normalize across the specified dimension
+		return exp_x ./ sum(exp_x, dims=dims)
 	end
 
 
 	# batched matrix multiplication, *first dim is batch dim*
-	function batched_matrix_multiplication(A::Array{Float32}, B::Array{Float32})::Array{Float32}
-		# Ensure the batch sizes (first dimension) match
-		size(A, 1) == size(B, 1) || throw(DimensionMismatch("Batch dimensions must match."))
+	# also supports A: (b, n, m) and B: (m, p)
+	function batched_matrix_multiplication(
+		A::Array{Float32, 3},
+		B::Array{Float32}
+	)::Array{Float32, 3}
+		if length(size(B)) != length(size(A)) && length(size(B)) != 2
+		throw(
+			DimensionMismatch(
+				"Matrices cannot be batch multiplied " *
+				"even when B is promoted to 3d."
+			)
+		)
+		end
 
-		# Check matrix dimensions for compatibility (A's 3rd dimension must match B's 2nd dimension)
-		size(A, 3) == size(B, 2) || throw(DimensionMismatch("Matrix dimensions must match: A's columns must match B's rows."))
+		# B must be promoted
+		if length(size(B)) == 2
+			# Check matrix dimensions for compatibility
+			# (A's 3rd dimension must match B's 1st dimension)
+			size(A, 3) == size(B, 1) || 
+				throw(
+					DimensionMismatch(
+						"Matrix dimensions must match: " *
+						"A's columns must match B's rows."
+					)
+				)
+			
+			b, n = size(A)[1:2] # A: (b, n, m)
+			p = size(B)[2] # B: (m, p)
+			C = Array{Float32, 3}(undef, b, n, p)
+			for i in 1:b
+				C[i, :, :] = A[i, :, :] * B
+			end
+			return C
+		end
+
+		# Ensure the batch sizes (first dimension) match
+		size(A, 1) == size(B, 1) ||
+			throw(DimensionMismatch("Batch dimensions must match."))
+
+		# Check matrix dimensions for compatibility
+		# (A's 3rd dimension must match B's 2nd dimension)
+		size(A, 3) == size(B, 2) ||
+			throw(
+				DimensionMismatch(
+					"Matrix dimensions must match: " *
+					"A's columns must match B's rows."
+				)
+			)
 
 		b, n = size(A)[1:2] # A: (b, n, m)
 		p = size(B)[3] # B: (b, m, p)
@@ -142,8 +203,9 @@ module MultiHeadAttentionModule
 		
 		size(mask) == (size(Q, 1), size(Q, 2), size(K, 2)) || throw(
 			ArgumentError(
-				"Shape mismatch: mask must have dims (batch_size, seq_len, seq_len)" *
-				"Got size: $(size(mask))" *
+				"Shape mismatch: mask must have dims " * 
+				"(batch_size, seq_len, seq_len). " *
+				"Got size: $(size(mask)) " *
 				"whereas Q: $(size(Q))."
 			)
 		)
